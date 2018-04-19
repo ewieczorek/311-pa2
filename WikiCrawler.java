@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -30,7 +27,7 @@ public class WikiCrawler {
     private Set<String> visitedURLs;
     private Set<String> visitedURLsWithTopics;
 
-    private HashMap<String, ArrayList<String>> Graph;
+    public  HashMap<String, ArrayList<String>> graph;
     /*
     Constructor:
     @param seedURL: A string seedUrl–relative address of the seed url (within Wiki domain).
@@ -49,7 +46,7 @@ public class WikiCrawler {
         this.visitedURLsWithTopics = new HashSet<>();
 
         this.parserList = new ArrayList<>();
-        this.Graph = new HashMap<>();
+        this.graph = new HashMap<>();
     }
 
     public void crawl() {
@@ -100,56 +97,38 @@ public class WikiCrawler {
                         edges.add(links);
                     }
                 }
-                this.Graph.put(URLs.returnURL(), edges);
+                this.graph.put(URLs.returnURL(), edges);
                 System.out.println(URLs.returnURL() + " Contains the edges: ");
                 for(String edge: edges){
                     System.out.print(edge + ", ");
                 }
             }
         }
-
-
-            /*URL url = new URL(BASE_URL + seedURL);
-            InputStream is = url.openStream();
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            ArrayList<String> pagesToVisit = new ArrayList<>();
-            boolean exit = false;
-            boolean activeContent = false;
-            while(exit == false){
-                try{
-                    String line = br.readLine();
-                    if(activeContent == false){
-                        if (line.contains("<p>")){
-                            activeContent = true;
-                        }else{ continue;}
-                    }
-                    if(activeContent == true){
-                        //If we're in the active content now it's time to start parsing links
-                        int index = line.indexOf("<a href=\"");
-                        while(index >= 0) {
-                            String tempLink = null;
-                            int i = index;
-                            while(line.charAt(i) != "\""){
-
-                            }
-                            index = line.indexOf("<a href=\"", index+1);
-                        }
-                    }
-                }catch(NullPointerException e){
-                    exit = true;
-                }
-            }*/
+        printTofile();
             //read through the document to find the first instance of "<p>"
             //find any instances of "<a href="" and look at the link
-            //only include links that start with "/" e.g. /wiki/XXX
+            //only include links that start with "/wiki/"
             //don't include any links that start with "#" or contains ":"
             //check all links for instances of the keywords in the Topics variable
 
     }
 
-    private void printTofile(String data){
+    private void printTofile(){
         //this function writes the data in data to a new line
         //in the text file denoted by fileName. If fileName doesn't
         //exist it makes the file
+
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+            writer.write(visitedURLsWithTopics.size() + "\n");
+            for(String list: visitedURLsWithTopics){
+                for(String str: graph.get(list)){
+                    writer.write(list + " " + str + "\n");
+                }
+            }
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Couldn't open file");
+        }
     }
 }
