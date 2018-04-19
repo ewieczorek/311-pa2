@@ -2,10 +2,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
 
 
 /**
@@ -24,6 +24,13 @@ public class WikiCrawler {
     //a static, final global variable named BASE_URL with value https://en.wikipedia.org a
     static final String BASE_URL = "https://en.wikipedia.org";
 
+    ArrayList<WikiPageParser> parserList;
+
+    private Set<String> allURLs;
+    private Set<String> visitedURLs;
+    private Set<String> visitedURLsWithTopics;
+
+    private HashMap<String, ArrayList<String>> Graph;
     /*
     Constructor:
     @param seedURL: A string seedUrl–relative address of the seed url (within Wiki domain).
@@ -36,11 +43,71 @@ public class WikiCrawler {
         this.max = max;
         this.Topics = Topics;
         this.fileName = fileName;
+
+        this.allURLs = new HashSet<>();
+        this.visitedURLs = new HashSet<>();
+        this.visitedURLsWithTopics = new HashSet<>();
+
+        this.parserList = new ArrayList<>();
+        this.Graph = new HashMap<>();
     }
 
     public void crawl() {
-        try {
-            ArrayList<String> pagesToVisit = new ArrayList<>();
+        allURLs.add(this.seedURL);
+        ArrayList<String> pagesToVisit = new ArrayList<>();
+        //make a page parser for the seed URL
+        WikiPageParser wpp = new WikiPageParser(this.seedURL, Topics);
+        visitedURLs.add(this.seedURL);
+        parserList.add(wpp);
+        if(wpp.containsAllTopics()){
+            visitedURLsWithTopics.add(this.seedURL);
+            Set<String> temp = wpp.returnAllLinks();
+            int amountPassed = 0;
+            for (String URL: temp) {
+                if(visitedURLsWithTopics.size() < max) {
+                    //System.out.println("checking URL: " + URL);
+                    if(!allURLs.contains(URL)) {
+                        allURLs.add(URL);
+                        WikiPageParser tempParser = new WikiPageParser(URL, Topics);
+                        visitedURLs.add(URL);
+                        if (tempParser.containsAllTopics()) {
+                            visitedURLsWithTopics.add(URL);
+                            //if it was already in the set do nothing
+                            //else{
+                            parserList.add(tempParser);
+                            //}
+
+                            System.out.println(URL + " Contains all of the keywords");
+
+                        }
+                    }
+                }
+                amountPassed++;
+                if(amountPassed % 25 == 0){
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        //e.goFuckYourself
+                    }
+                }
+            }
+            for(WikiPageParser URLs: parserList){
+                //go through everything in it's Set of links and check if it exists in visitedURLsWithTopics
+                System.out.println("making the graph");
+                ArrayList<String> edges = new ArrayList<>();
+                for(String links: URLs.returnAllLinks()){
+                    if(visitedURLsWithTopics.contains(links)){
+                        edges.add(links);
+                    }
+                }
+                this.Graph.put(URLs.returnURL(), edges);
+                System.out.println(URLs.returnURL() + " Contains the edges: ");
+                for(String edge: edges){
+                    System.out.print(edge + ", ");
+                }
+            }
+        }
+
 
             /*URL url = new URL(BASE_URL + seedURL);
             InputStream is = url.openStream();
@@ -78,49 +145,6 @@ public class WikiCrawler {
             //don't include any links that start with "#" or contains ":"
             //check all links for instances of the keywords in the Topics variable
 
-        } catch (IOException e) {
-            System.out.println("Couldn't open the URL");
-        }
-    }
-
-    private boolean checkForTopics(String page){
-        for(int i = 0; i < Topics.size(); i++){
-            if(page.contains(Topics.get(i))){
-                continue;
-            }else{return false;}
-        }
-        return true;
-    }
-
-    private ArrayList<String> getAllLinks(String page){
-        ArrayList<String> linksOnPage = new ArrayList<>();
-        int index = page.indexOf("<a href=\"");
-        while(index >= 0) {
-            String tempLink = "";
-            int i = index + 10;
-            if(page.charAt(index + 10) == '#'){
-                //this is not a page we want
-            }
-            while(page.charAt(i) != '\"'){
-                tempLink += page.charAt(i);
-            }
-            linksOnPage.add(tempLink);
-            index = page.indexOf("<a href=\"", index+1);
-        }
-        return linksOnPage;
-    }
-
-    private String createStringFromWebPage(String requestURL) throws IOException{
-        String fileText = "";
-        try (Scanner scanner = new Scanner(new URL(requestURL).openStream(),
-            StandardCharsets.UTF_8.toString()))
-        {
-            scanner.useDelimiter("\\A");
-            fileText = scanner.hasNext() ? scanner.next() : "";
-        }
-        int firstIndex = fileText.indexOf("<p>");
-        int secondIndex = fileText.indexOf("<span class=\"mw-headline\" id=\"Notes_and_references\">");
-        return fileText.substring(firstIndex, secondIndex);
     }
 
     private void printTofile(String data){
