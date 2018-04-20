@@ -25,7 +25,7 @@ public class WikiCrawler {
 
     private Set<String> allURLs;
     private Set<String> visitedURLs;
-    private Set<String> visitedURLsWithTopics;
+    private ArrayList<String> visitedURLsWithTopics;
 
     public  HashMap<String, ArrayList<String>> graph;
     /*
@@ -43,22 +43,51 @@ public class WikiCrawler {
 
         this.allURLs = new HashSet<>();
         this.visitedURLs = new HashSet<>();
-        this.visitedURLsWithTopics = new HashSet<>();
+        this.visitedURLsWithTopics = new ArrayList<>();
 
         this.parserList = new ArrayList<>();
         this.graph = new HashMap<>();
     }
 
     public void crawl() {
-        allURLs.add(this.seedURL);
+        recursiveCrawl(this.seedURL);
+
+        System.out.println("\n\nmaking the graph");
+        for(WikiPageParser URLs: parserList){
+            //go through everything in it's Set of links and check if it exists in visitedURLsWithTopics
+            //System.out.println("\n\nmaking the graph");
+            ArrayList<String> edges = new ArrayList<>();
+            for(String links: URLs.returnAllLinks()){
+                if(visitedURLsWithTopics.contains(links) && !links.equals(URLs.returnURL())){
+                    edges.add(links);
+                }
+            }
+            this.graph.put(URLs.returnURL(), edges);
+        }
+
+        printTofile();
+            //read through the document to find the first instance of "<p>"
+            //find any instances of "<a href="" and look at the link
+            //only include links that start with "/wiki/"
+            //don't include any links that start with "#" or contains ":"
+            //check all links for instances of the keywords in the Topics variable
+
+    }
+
+    private void recursiveCrawl(String seedURL){
+        allURLs.add(seedURL);
         ArrayList<String> pagesToVisit = new ArrayList<>();
         //make a page parser for the seed URL
-        WikiPageParser wpp = new WikiPageParser(this.seedURL, Topics);
-        visitedURLs.add(this.seedURL);
-        parserList.add(wpp);
+        WikiPageParser wpp = new WikiPageParser(seedURL, Topics);
+        if(!visitedURLs.contains(seedURL)) {
+            visitedURLs.add(seedURL);
+            parserList.add(wpp);
+        }
         if(wpp.containsAllTopics()){
-            visitedURLsWithTopics.add(this.seedURL);
-            Set<String> temp = wpp.returnAllLinks();
+            if(!visitedURLsWithTopics.contains(seedURL)) {
+                visitedURLsWithTopics.add(seedURL);
+            }
+            ArrayList<String> temp = wpp.returnAllLinks();
             int amountPassed = 0;
             for (String URL: temp) {
                 if(visitedURLsWithTopics.size() < max) {
@@ -78,39 +107,29 @@ public class WikiCrawler {
 
                         }
                     }
+                }else{
+                    break;
                 }
                 amountPassed++;
                 if(amountPassed % 25 == 0){
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException e) {
-                        //e.goFuckYourself
-                    }
-                }
-            }
-            for(WikiPageParser URLs: parserList){
-                //go through everything in it's Set of links and check if it exists in visitedURLsWithTopics
-                System.out.println("making the graph");
-                ArrayList<String> edges = new ArrayList<>();
-                for(String links: URLs.returnAllLinks()){
-                    if(visitedURLsWithTopics.contains(links)){
-                        edges.add(links);
-                    }
-                }
-                this.graph.put(URLs.returnURL(), edges);
-                System.out.println(URLs.returnURL() + " Contains the edges: ");
-                for(String edge: edges){
-                    System.out.print(edge + ", ");
-                }
-            }
-        }
-        printTofile();
-            //read through the document to find the first instance of "<p>"
-            //find any instances of "<a href="" and look at the link
-            //only include links that start with "/wiki/"
-            //don't include any links that start with "#" or contains ":"
-            //check all links for instances of the keywords in the Topics variable
 
+                    }
+                }
+            }
+            if(visitedURLsWithTopics.size() < max) {
+                for (String URL: temp) {
+                    if(visitedURLsWithTopics.size() >= max) {
+                        break;
+                    }else{
+                        recursiveCrawl(URL);
+                    }
+                }
+            }
+
+        }
     }
 
     private void printTofile(){
@@ -132,3 +151,59 @@ public class WikiCrawler {
         }
     }
 }
+
+/* OLD CRAWL METHOD BEFORE MAKING IT RECURSIVE
+        allURLs.add(this.seedURL);
+        ArrayList<String> pagesToVisit = new ArrayList<>();
+        //make a page parser for the seed URL
+        WikiPageParser wpp = new WikiPageParser(this.seedURL, Topics);
+        visitedURLs.add(this.seedURL);
+        parserList.add(wpp);
+        if(wpp.containsAllTopics()){
+            visitedURLsWithTopics.add(this.seedURL);
+            ArrayList<String> temp = wpp.returnAllLinks();
+            int amountPassed = 0;
+            for (String URL: temp) {
+                if(visitedURLsWithTopics.size() < max) {
+                    //System.out.println("checking URL: " + URL);
+                    if(!allURLs.contains(URL)) {
+                        allURLs.add(URL);
+                        WikiPageParser tempParser = new WikiPageParser(URL, Topics);
+                        visitedURLs.add(URL);
+                        if (tempParser.containsAllTopics()) {
+                            visitedURLsWithTopics.add(URL);
+                            //if it was already in the set do nothing
+                            //else{
+                            parserList.add(tempParser);
+                            //}
+
+                            System.out.println(URL + " Contains all of the keywords");
+
+                        }
+                    }
+                }else{
+                    break;
+                }
+                amountPassed++;
+                if(amountPassed % 25 == 0){
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        //e.goFuckYourself
+                    }
+                }
+            }
+            System.out.println("\n\nmaking the graph");
+            for(WikiPageParser URLs: parserList){
+                //go through everything in it's Set of links and check if it exists in visitedURLsWithTopics
+                //System.out.println("\n\nmaking the graph");
+                ArrayList<String> edges = new ArrayList<>();
+                for(String links: URLs.returnAllLinks()){
+                    if(visitedURLsWithTopics.contains(links) && !links.equals(URLs.returnURL())){
+                        edges.add(links);
+                    }
+                }
+                this.graph.put(URLs.returnURL(), edges);
+            }
+        }
+ */

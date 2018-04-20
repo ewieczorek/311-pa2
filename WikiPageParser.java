@@ -16,7 +16,7 @@ public class WikiPageParser {
     //An integer max representing Maximum number pages to be crawled.
     private ArrayList<String> Topics;
     //list of all links on this page
-    private Set<String> linksOnPage;
+    private ArrayList<String> linksOnPage;
     //boolean for whether or not this page contains the topic keywords
     private boolean containsTopics;
     //string that contains the relevant html for the page
@@ -33,6 +33,7 @@ public class WikiPageParser {
         }
         if(!(this.pageHTML.equals("PAGE NOT FOUND"))){
             containsTopics = checkForTopics(this.pageHTML);
+
         }
 
     }
@@ -41,7 +42,7 @@ public class WikiPageParser {
         return this.containsTopics;
     }
 
-    public Set<String> returnAllLinks(){
+    public ArrayList<String> returnAllLinks(){
         this.linksOnPage = getAllLinks(pageHTML);
         return this.linksOnPage;
     }
@@ -51,16 +52,22 @@ public class WikiPageParser {
     }
 
     private boolean checkForTopics(String page){
-        for(int i = 0; i < Topics.size(); i++){
-            if(page.contains(Topics.get(i))){
-                continue;
-            }else{return false;}
+        if(Topics == null || Topics.isEmpty()){
+            return true;
+        }else {
+            for (int i = 0; i < Topics.size(); i++) {
+                if (page.contains(Topics.get(i))) {
+                    continue;
+                } else {
+                    return false;
+                }
+            }
         }
         return true;
     }
 
-    private Set<String> getAllLinks(String page){
-        Set<String> linksOnPage = new HashSet<>();
+    private ArrayList<String> getAllLinks(String page){
+        this.linksOnPage = new ArrayList<>();
         int index = page.indexOf("<a href=\"");
         while(index >= 0) {
             String tempLink = "";
@@ -76,7 +83,9 @@ public class WikiPageParser {
             }
             index = page.indexOf("<a href=\"", index+1);
             if(tempLink.length() > 6 && tempLink.startsWith("/wiki/") && !tempLink.contains(":")){
-                linksOnPage.add(tempLink);
+                if(!this.linksOnPage.contains(tempLink)){
+                    linksOnPage.add(tempLink);
+                }
                 //System.out.println("Added: " + tempLink);
             }
         }

@@ -16,9 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 public class NetworkInfluence
 {
@@ -30,12 +28,22 @@ public class NetworkInfluence
     private HashMap<String, ArrayList<String>> VtoU; //in degree of vertices
     private HashMap<String, Double> influenceGraph;
     private Set<String> numVerts;        //list of vertices
+    //File name of the graph data
     private String graphdata;
+    //Nodes that have already been checked while computing distance.
+    private Set<String> distanceCheckedNodes;
+    private int lowestDistanceFound;
 
     // NOTE: graphData is an absolute file path that contains graph data, NOT the raw graph data itself
     public NetworkInfluence(String graphData)
     {
         this.graphdata = graphData;
+        this.graph = new HashMap<>();
+        int fileError = createGraphFromFile();
+        if (fileError == 1){
+            System.out.println("Error with the file");
+        }
+
         // implementation
     }
 
@@ -44,21 +52,11 @@ public class NetworkInfluence
      */
     public int outDegree(String v)
     {
-
-        return graph.get(v).size();
-    }
-
-    private int checkForNode(String v, String u, int distance){
-        ArrayList<String> edges = new ArrayList<>();
-        edges = graph.get(v);
-        for(String str: edges){
-            if(u.equals(str));
-            return distance;
+        if(graph.containsKey(v)){
+            return graph.get(v).size();
+        }else{
+            return 0;
         }
-        for(String str: edges){
-            distance = checkForNode(str, u, distance + 1);
-        }
-        return distance;
     }
 
     /*
@@ -67,6 +65,7 @@ public class NetworkInfluence
     array list of Strings. First vertex in the path must be u and the last vertex must be v. If there is no
     path from u to v, then this method returns an empty list. The return type is ArrayList<String>
      */
+    //TODO
     public ArrayList<String> shortestPath(String u, String v)
     {
 
@@ -112,8 +111,39 @@ public class NetworkInfluence
      */
     public int distance(String u, String v)
     {
+        ArrayList<String> temp = new ArrayList<>();
+        temp.add(v);
+        recDistance(u, v, temp, 0);
         return checkForNode(u,v,0);
+    }
 
+    private ArrayList<String> recDistance(String startNode, String finalNode, ArrayList<String> nodesToCheck, int distance){
+
+
+
+        ArrayList<String> temp = new ArrayList<>();
+        for(ArrayList<String> al: graph.values()){
+
+        }
+
+        return temp;
+    }
+
+    private int checkForNode(String u, String v, int distance){
+        int distanceFound = 0;
+        LinkedList<String> queue = new LinkedList<>();
+        HashMap<String, Integer> visitedNodes = new HashMap<>();
+
+        queue.add(u);
+        visitedNodes.put(u, 0);
+        while(queue.size()!=0){
+            String temp = queue.poll();
+            for(int i = 0; i < graph.get(temp).size(); i++){
+
+            }
+        }
+
+        return distanceFound;
     }
 
     /*
@@ -122,10 +152,14 @@ public class NetworkInfluence
      */
     public int distance(ArrayList<String> s, String v)
     {
-        // implementation
-
-        // replace this:
-        return -1;
+        int leastDistance = distance(s.get(0), v);
+        for(String str: s){
+            int distance = distance(str, v);
+            if(distance < leastDistance){
+                leastDistance = distance;
+            }
+        }
+        return leastDistance;
     }
 
     /*
@@ -187,7 +221,7 @@ public class NetworkInfluence
         return null;
     }
 
-    private void createGraphFromFile(){
+    private int createGraphFromFile(){
         try {
             BufferedReader br = new BufferedReader(new FileReader(graphdata));
             String line = "";
@@ -204,10 +238,13 @@ public class NetworkInfluence
                     }
                 }
             }
+            return 0;
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
+            return 1;
         } catch (IOException e){
             System.out.println("Couldn't read file");
+            return 1;
         }
     }
 }
