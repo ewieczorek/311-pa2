@@ -68,10 +68,10 @@ public class WikiPageParser {
 
     private ArrayList<String> getAllLinks(String page){
         this.linksOnPage = new ArrayList<>();
-        int index = page.indexOf("<a href=\"");
+        int index = page.indexOf("href=\"");
         while(index >= 0) {
             String tempLink = "";
-            int i = index + 9;
+            int i = index + 6;
             if(page.charAt(i) == '#'){
                 //this is not a page we want
 
@@ -81,7 +81,7 @@ public class WikiPageParser {
                     i++;
                 }
             }
-            index = page.indexOf("<a href=\"", index+1);
+            index = page.indexOf("href=\"", index+1);
             if(tempLink.length() > 6 && tempLink.startsWith("/wiki/") && !tempLink.contains(":")){
                 if(!this.linksOnPage.contains(tempLink)){
                     linksOnPage.add(tempLink);

@@ -50,7 +50,8 @@ public class WikiCrawler {
     }
 
     public void crawl() {
-        recursiveCrawl(this.seedURL);
+//        recursiveCrawl(this.seedURL);
+        bfsCrawl(seedURL);
 
         System.out.println("\n\nmaking the graph");
         for(WikiPageParser URLs: parserList){
@@ -74,44 +75,41 @@ public class WikiCrawler {
 
     }
 
-    private void recursiveCrawl(String seedURL){
-        allURLs.add(seedURL);
-        ArrayList<String> pagesToVisit = new ArrayList<>();
-        //make a page parser for the seed URL
-        WikiPageParser wpp = new WikiPageParser(seedURL, Topics);
-        if(!visitedURLs.contains(seedURL)) {
-            visitedURLs.add(seedURL);
-            parserList.add(wpp);
-        }
-        if(wpp.containsAllTopics()){
-            if(!visitedURLsWithTopics.contains(seedURL)) {
-                visitedURLsWithTopics.add(seedURL);
-            }
-            ArrayList<String> temp = wpp.returnAllLinks();
-            int amountPassed = 0;
-            for (String URL: temp) {
-                if(visitedURLsWithTopics.size() < max) {
+    private void bfsCrawl(String seedURL){
+        LinkedList<String> queue = new LinkedList<>();
+        HashMap<String, Integer> distance = new HashMap<>();
+        Set<String> visited = new HashSet<>();
+
+        queue.add(seedURL);
+
+
+        int amountPassed = 0;
+        while(queue.size()!=0){
+            String URL = queue.poll();
+            if(!visited.contains(URL)) {
+                visited.add(URL);
+                if (visitedURLsWithTopics.size() < max) {
                     //System.out.println("checking URL: " + URL);
-                    if(!allURLs.contains(URL)) {
-                        allURLs.add(URL);
-                        WikiPageParser tempParser = new WikiPageParser(URL, Topics);
-                        visitedURLs.add(URL);
-                        if (tempParser.containsAllTopics()) {
-                            visitedURLsWithTopics.add(URL);
-                            //if it was already in the set do nothing
-                            //else{
-                            parserList.add(tempParser);
-                            //}
-
-                            System.out.println(URL + " Contains all of the keywords");
-
+                    visited.add(URL);
+                    WikiPageParser tempParser = new WikiPageParser(URL, Topics);
+                    visitedURLs.add(URL);
+                    if (tempParser.containsAllTopics()) {
+                        visitedURLsWithTopics.add(URL);
+                        parserList.add(tempParser);
+                        for (String str : tempParser.returnAllLinks()) {
+                            if(!visited.contains(str)){
+                                queue.add(str);
+                            }
                         }
+
+                        System.out.println(URL + " Contains all of the keywords");
+
                     }
-                }else{
+                } else {
                     break;
                 }
                 amountPassed++;
-                if(amountPassed % 25 == 0){
+                if (amountPassed % 25 == 0) {
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException e) {
@@ -119,18 +117,66 @@ public class WikiCrawler {
                     }
                 }
             }
-            if(visitedURLsWithTopics.size() < max) {
-                for (String URL: temp) {
-                    if(visitedURLsWithTopics.size() >= max) {
-                        break;
-                    }else{
-                        recursiveCrawl(URL);
-                    }
-                }
-            }
-
         }
     }
+
+//    private void recursiveCrawl(String seedURL){
+//        allURLs.add(seedURL);
+//        ArrayList<String> pagesToVisit = new ArrayList<>();
+//        //make a page parser for the seed URL
+//        WikiPageParser wpp = new WikiPageParser(seedURL, Topics);
+//        if(!visitedURLs.contains(seedURL)) {
+//            visitedURLs.add(seedURL);
+//            parserList.add(wpp);
+//        }
+//        if(wpp.containsAllTopics()){
+//            if(!visitedURLsWithTopics.contains(seedURL)) {
+//                visitedURLsWithTopics.add(seedURL);
+//            }
+//            ArrayList<String> temp = wpp.returnAllLinks();
+//            int amountPassed = 0;
+//            for (String URL: temp) {
+//                if(visitedURLsWithTopics.size() < max) {
+//                    //System.out.println("checking URL: " + URL);
+//                    if(!allURLs.contains(URL)) {
+//                        allURLs.add(URL);
+//                        WikiPageParser tempParser = new WikiPageParser(URL, Topics);
+//                        visitedURLs.add(URL);
+//                        if (tempParser.containsAllTopics()) {
+//                            visitedURLsWithTopics.add(URL);
+//                            //if it was already in the set do nothing
+//                            //else{
+//                            parserList.add(tempParser);
+//                            //}
+//
+//                            System.out.println(URL + " Contains all of the keywords");
+//
+//                        }
+//                    }
+//                }else{
+//                    break;
+//                }
+//                amountPassed++;
+//                if(amountPassed % 25 == 0){
+//                    try {
+//                        Thread.sleep(3000);
+//                    } catch (InterruptedException e) {
+//
+//                    }
+//                }
+//            }
+//            if(visitedURLsWithTopics.size() < max) {
+//                for (String URL: temp) {
+//                    if(visitedURLsWithTopics.size() >= max) {
+//                        break;
+//                    }else{
+//                        recursiveCrawl(URL);
+//                    }
+//                }
+//            }
+//
+//        }
+//    }
 
     private void printTofile(){
         //this function writes the data in data to a new line
@@ -151,59 +197,3 @@ public class WikiCrawler {
         }
     }
 }
-
-/* OLD CRAWL METHOD BEFORE MAKING IT RECURSIVE
-        allURLs.add(this.seedURL);
-        ArrayList<String> pagesToVisit = new ArrayList<>();
-        //make a page parser for the seed URL
-        WikiPageParser wpp = new WikiPageParser(this.seedURL, Topics);
-        visitedURLs.add(this.seedURL);
-        parserList.add(wpp);
-        if(wpp.containsAllTopics()){
-            visitedURLsWithTopics.add(this.seedURL);
-            ArrayList<String> temp = wpp.returnAllLinks();
-            int amountPassed = 0;
-            for (String URL: temp) {
-                if(visitedURLsWithTopics.size() < max) {
-                    //System.out.println("checking URL: " + URL);
-                    if(!allURLs.contains(URL)) {
-                        allURLs.add(URL);
-                        WikiPageParser tempParser = new WikiPageParser(URL, Topics);
-                        visitedURLs.add(URL);
-                        if (tempParser.containsAllTopics()) {
-                            visitedURLsWithTopics.add(URL);
-                            //if it was already in the set do nothing
-                            //else{
-                            parserList.add(tempParser);
-                            //}
-
-                            System.out.println(URL + " Contains all of the keywords");
-
-                        }
-                    }
-                }else{
-                    break;
-                }
-                amountPassed++;
-                if(amountPassed % 25 == 0){
-                    try {
-                        Thread.sleep(3000);
-                    } catch (InterruptedException e) {
-                        //e.goFuckYourself
-                    }
-                }
-            }
-            System.out.println("\n\nmaking the graph");
-            for(WikiPageParser URLs: parserList){
-                //go through everything in it's Set of links and check if it exists in visitedURLsWithTopics
-                //System.out.println("\n\nmaking the graph");
-                ArrayList<String> edges = new ArrayList<>();
-                for(String links: URLs.returnAllLinks()){
-                    if(visitedURLsWithTopics.contains(links) && !links.equals(URLs.returnURL())){
-                        edges.add(links);
-                    }
-                }
-                this.graph.put(URLs.returnURL(), edges);
-            }
-        }
- */

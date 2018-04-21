@@ -21,20 +21,11 @@ import java.util.*;
 
 public class NetworkInfluence
 {
-//    private int edges; //number of edges
-//    private int verts;  //number of vertices
-//    private int numIter;
     private HashMap<String, ArrayList<String>> graph;
-    //private HashMap<String, ArrayList<String>> UtoV; //out degree of vertices
-    //private HashMap<String, ArrayList<String>> VtoU; //in degree of vertices
-    //private HashMap<String, Double> influenceGraph;
-    //private Set<String> numVerts;        //list of vertices
     //File name of the graph data
     private String graphData;
-    //Nodes that have already been checked while computing distance.
 
     // NOTE: graphData is an absolute file path that contains graph data, NOT the raw graph data itself
-    //TODO
     public NetworkInfluence(String graphData)
     {
         this.graphData = graphData;
@@ -44,7 +35,6 @@ public class NetworkInfluence
             System.out.println("Error with the file");
         }
 
-        // implementation
     }
 
     /*
@@ -72,7 +62,6 @@ public class NetworkInfluence
         Set<String> visited = new HashSet<>();
 
         queue.add(u);
-
         visited.add(u);
 
         ArrayList<String> al1 = new ArrayList<>();
@@ -92,23 +81,23 @@ public class NetworkInfluence
                         al.addAll(distance.get(temp));
                         if(!distance.get(temp).contains(temp)){
                             al.add(temp);
-
                         }
                         distance.put(str, al);
                     }
-                    queue.push(str);
-                    visited.add(str);
+                    queue.add(str);
                 }
             }
+            visited.add(temp);
         }
-        distance.get(v).add(v);
         if(distance.containsKey(v)) {
-            for(String str: distance.get(v)){
-                System.out.println(str + ",");
-            }
+            distance.get(v).add(v);
+//Debug print lines
+//            for(String str: distance.get(v)){
+//                System.out.println(str + ",");
+//            }
             return distance.get(v);
         }
-        return null;
+        return new ArrayList<String>();
     }
 
     /*
@@ -116,6 +105,7 @@ public class NetworkInfluence
      */
     public int distance(String u, String v)
     {
+        if(u.equals(v)) return 0;
         LinkedList<String> queue = new LinkedList<>();
         HashMap<String, Integer> distance = new HashMap<>();
         Set<String> visited = new HashSet<>();
@@ -134,8 +124,9 @@ public class NetworkInfluence
                     } else {
                         distance.put(str, 1);
                     }
-                    queue.push(str);
+                    queue.add(str);
                     visited.add(str);
+
                 }
             }
         }
@@ -154,7 +145,7 @@ public class NetworkInfluence
             int leastDistance = distance(s.get(0), v);
             for (String str : s) {
                 int distance = distance(str, v);
-                if (distance < leastDistance) {
+                if (distance < leastDistance && distance != -1) {
                     leastDistance = distance;
                 }
             }
@@ -172,52 +163,64 @@ public class NetworkInfluence
         float inf = 0;
         int[] values = new int[graph.size()];
         Arrays.fill(values, 0, values.length, 0);
-
-        for(String str: graph.keySet()){
-            if(!str.equals(u)){
-                int dist = distance(u, str);
-                if(dist != -1) {
-                    values[dist]++;
-                }
+        Set<String> valuesToCheck = new HashSet<>();
+        for(ArrayList<String> al: graph.values()){
+            for(String str: al){
+                valuesToCheck.add(str);
+            }
+        }
+        for(String str: valuesToCheck){
+            int dist = distance(u, str);
+            if(dist != -1) {
+                values[dist]++;
             }
         }
 
-        for(int i: values){
+        for(int i = 0; i < values.length; i++){
             inf += ((1/(Math.pow(2, i))) * values[i]);
         }
         return inf;
     }
-
-
-
-    /*
-        float dist = distance(graph.get(Vertex), y)
-     */
 
 
 
     /*
     influence(ArrayList<String> s). Here s holds a set of vertices of G. This method returns
     Inf(s) whose type is float.
+
+    So I'm not sure if I followed the instructions correctly here but this is what it does:
+    Goes through every node that exists in the set of all values and stores them in a set called valuesToCheck
+    goes through every value in valuesToCheck and finds its MINIMUM distance from any vertex in the ArrayList
+    For every minimum distance it add one to the values array at the index of it's distance
+
+    Computes the inf using the values array. Every index in the array corresponds to how many nodes are at that distance.
      */
     public float influence(ArrayList<String> s)
     {
+
         float inf = 0;
         int[] values = new int[graph.size()];
         Arrays.fill(values, 0, values.length, 0);
-
-        for(String str: graph.keySet()){
+        Set<String> valuesToCheck = new HashSet<>();
+        for(ArrayList<String> al: graph.values()){
+            for(String str: al){
+                valuesToCheck.add(str);
+            }
+        }
+        for(String str: valuesToCheck){
             int dist = distance(s, str);
             if(dist != -1) {
                 values[dist]++;
             }
         }
 
-        for(int i: values){
+        for(int i = 0; i < values.length; i++){
             inf += ((1/(Math.pow(2, i))) * values[i]);
         }
         return inf;
     }
+
+
 
     /*
     mostInfluentialDegree(int k). Returns a set of k nodes obtained by using Degree Greedy
@@ -226,16 +229,16 @@ public class NetworkInfluence
     //TODO
     public ArrayList<String> mostInfluentialDegree(int k)
     {
+        long startTime = System.currentTimeMillis();
+
         ArrayList<String> output = new ArrayList<>();
-        HashMap<String, Integer> degrees = new HashMap<>();
         List<Pair<String, Integer>> degree = new ArrayList<>();
         for(String str: graph.keySet()){
-            degrees.put(str, outDegree(str));
             int j = 0;
             if(degree.isEmpty()){
                 degree.add(new Pair<String, Integer>(str, outDegree(str)));
             }else {
-                boolean added =false;
+                boolean added = false;
                 int out = outDegree(str);
                 for (Pair<String, Integer> p : degree) {
                     if (p.getValue() != null && out >= p.getValue()) {
@@ -249,24 +252,14 @@ public class NetworkInfluence
             }
         }
 
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total execution time: " + (endTime - startTime) );
+
         for(int i = 0; i < k; i++) {
             output.add(degree.get(i).getKey());
+            System.out.println(degree.get(i).getKey() + " degree: " + degree.get(i).getValue() + " Influence: " + influence(degree.get(i).getKey()));
         }
 
-
-//
-//
-//        for(int i = degreeList.size(); i > 0; i--) {
-//            if(degreeList.get(i) != null && !degreeList.get(i).isEmpty()){
-//                for(String s: degreeList.get(i)){
-//                    if(output.size() < k){
-//                        output.add(s);
-//                    }else{
-//                        return output;
-//                    }
-//                }
-//            }
-//        }
         return output;
     }
 
@@ -274,13 +267,40 @@ public class NetworkInfluence
     mostInfluentialModular(int k). Returns a set of k nodes obtained by using Modular Greedy
     algorithm. Return type must be ArrayList<String>.
      */
-    //TODO
     public ArrayList<String> mostInfluentialModular(int k)
     {
-        // implementation
+        long startTime = System.currentTimeMillis();
 
-        // replace this:
-        return null;
+        ArrayList<String> output = new ArrayList<>();
+        List<Pair<String, Float>> modular = new ArrayList<>();
+        for(String str: graph.keySet()){
+            int j = 0;
+            float inf = influence(str);
+            if(modular.isEmpty()){
+                modular.add(new Pair<String, Float>(str, inf));
+            }else {
+                boolean added =false;
+                for (Pair<String, Float> p : modular) {
+                    if (p.getValue() != null && inf >= p.getValue()) {
+                        modular.add(j, new Pair<String, Float>(str, inf));
+                        added = true;
+                        break;
+                    }
+                    j++;
+                }
+                if(!added) modular.add(new Pair<String, Float>(str, inf));
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total execution time: " + (endTime - startTime) );
+
+        for(int i = 0; i < k; i++) {
+            output.add(modular.get(i).getKey());
+            System.out.println(modular.get(i).getKey() + " influence: " + modular.get(i).getValue());
+        }
+
+        return output;
     }
 
     /*
@@ -290,10 +310,33 @@ public class NetworkInfluence
     //TODO
     public ArrayList<String> mostInfluentialSubModular(int k)
     {
-        // implementation
+        long startTime = System.currentTimeMillis();
 
-        // replace this:
-        return null;
+        ArrayList<String> u = new ArrayList<>();
+        for(int i = 0; i < k; i++) {
+            ArrayList<String> u1 = new ArrayList<>();
+            u1.addAll(u);
+            u1.add(graph.entrySet().iterator().next().getKey());
+            for (String s2 : graph.keySet()) {
+                ArrayList<String> v = new ArrayList<>();
+                v.addAll(u);
+                v.add(s2);
+                if (influence(v) > influence(u1)) {
+                    u1 = v;
+                }
+            }
+            u = new ArrayList<>();
+            u.addAll(u1);
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total execution time: " + (endTime - startTime) );
+
+        System.out.println("Influence of the group: " + influence(u));
+        for(String str: u) {
+            System.out.println(str + " influence: " + influence(str));
+        }
+
+        return u;
     }
 
     private int createGraphFromFile(){
@@ -301,7 +344,7 @@ public class NetworkInfluence
             BufferedReader br = new BufferedReader(new FileReader(this.graphData));
             String line = "";
             while((line = br.readLine()) != null){
-                if(line.charAt(0) == '/'){
+                if(!line.matches("\\d+")){
                     String str[];
                     str = line.split("\\s+");
                     if(graph.containsKey(str[0])){
