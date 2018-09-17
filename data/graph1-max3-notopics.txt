@@ -1,4 +1,0 @@
-3
-/wiki/A.html /wiki/B.html
-/wiki/B.html /wiki/C.html
-/wiki/C.html /wiki/A.html

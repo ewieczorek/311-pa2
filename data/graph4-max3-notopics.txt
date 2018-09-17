@@ -1,4 +1,0 @@
-3
-/wiki/D.html /wiki/E.html
-/wiki/E.html /wiki/F.html
-/wiki/F.html /wiki/D.html

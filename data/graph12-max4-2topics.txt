@@ -1,4 +1,0 @@
-3
-/wiki/L.html /wiki/M.html
-/wiki/M.html /wiki/L.html
-/wiki/M.html /wiki/O.html

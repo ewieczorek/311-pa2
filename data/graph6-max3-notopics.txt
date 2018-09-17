@@ -1,3 +1,0 @@
-3
-/wiki/D2.html /wiki/E2.html
-/wiki/E2.html /wiki/F2.html

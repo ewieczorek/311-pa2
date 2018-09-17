@@ -1,3 +1,0 @@
-3
-/wiki/G2.html /wiki/H2.html
-/wiki/H2.html /wiki/I2.html

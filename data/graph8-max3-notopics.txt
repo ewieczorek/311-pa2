@@ -1,3 +1,0 @@
-3
-/wiki/G1.html /wiki/H1.html
-/wiki/H1.html /wiki/I1.html
