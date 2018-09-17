@@ -11,7 +11,7 @@ public class Main {
         //WikiCrawler w1 = new WikiCrawler("/wiki/Computer_Science", 100, tester, "output.txt");
         //w1.crawl();
 
-        WikiCrawler w1 = new WikiCrawler("/wiki/Computer_Science", 100, tester, "output.txt");
+        WikiCrawler w1 = new WikiCrawler("/wiki/Computer_Science", 100, tester, "wikiCS.txt");
         w1.crawl();
 
         NetworkInfluence ni = new NetworkInfluence("output.txt");

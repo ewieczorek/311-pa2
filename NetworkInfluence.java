@@ -145,7 +145,9 @@ public class NetworkInfluence
             int leastDistance = distance(s.get(0), v);
             for (String str : s) {
                 int distance = distance(str, v);
-                if (distance < leastDistance && distance != -1) {
+                //TODO for TA. This doesn't work if distance(s.get(0),v) == -1. add the next line instead:
+                if((distance < leastDistance || leastDistance == -1) && distance != -1){
+                //if (distance < leastDistance && distance != -1) {
                     leastDistance = distance;
                 }
             }
@@ -204,12 +206,13 @@ public class NetworkInfluence
         Set<String> valuesToCheck = new HashSet<>();
         for(ArrayList<String> al: graph.values()){
             for(String str: al){
-                valuesToCheck.add(str);
+                    valuesToCheck.add(str);
             }
         }
         for(String str: valuesToCheck){
             int dist = distance(s, str);
-            if(dist != -1) {
+            //TODO for menglu
+            if(dist != -1 && dist != 0) {
                 values[dist]++;
             }
         }
@@ -226,7 +229,6 @@ public class NetworkInfluence
     mostInfluentialDegree(int k). Returns a set of k nodes obtained by using Degree Greedy
     algorithm. Return type must be ArrayList<String>.
      */
-    //TODO
     public ArrayList<String> mostInfluentialDegree(int k)
     {
         long startTime = System.currentTimeMillis();
@@ -307,7 +309,6 @@ public class NetworkInfluence
     mostInfluentialSubModular(int k). Returns a set of k nodes obtained by using SubModular
     Greedy algorithm. Return type must be ArrayList<String>.
      */
-    //TODO
     public ArrayList<String> mostInfluentialSubModular(int k)
     {
         long startTime = System.currentTimeMillis();

@@ -10,7 +10,8 @@ import java.util.Set;
  * Created by ethantw on 4/18/2018.
  */
 public class WikiPageParser {
-    static final String BASE_URL = "https://en.wikipedia.org";
+    //static final String BASE_URL = "https://en.wikipedia.org";
+    static final String BASE_URL = "http://web.cs.iastate.edu/~pavan";
     //the url without the en.wikipedia.org part
     private String seedURL;
     //An integer max representing Maximum number pages to be crawled.

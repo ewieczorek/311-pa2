@@ -1,0 +1,10 @@
+10
+A AX
+AX AY
+AY T
+C CX
+CX CY
+CY T
+B BX
+BX BY
+BY T

@@ -1,0 +1,9 @@
+7
+S A1
+S A2
+A1 A2
+S A3
+S A5
+S A4
+A3 B1
+B1 A4
